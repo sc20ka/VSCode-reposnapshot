@@ -235,6 +235,8 @@ export class SnapshotTreeProvider implements vscode.TreeDataProvider<SnapshotIte
                             this.config.partialFolders[currentRel].excluded = children
                                 .map(([name]) => name)
                                 .filter(name => name !== currSpecific && !this.isSelected(path.posix.join(currentRel, name)));
+                        } else {
+                            this.config.partialFolders[currentRel].excluded = [];
                         }
                     }
                     const refreshParent = currParent;
@@ -244,70 +246,53 @@ export class SnapshotTreeProvider implements vscode.TreeDataProvider<SnapshotIte
                     refreshItem.resourceUri = refreshUri;
                     this.refresh(refreshItem);
                 }
+                
+                // Check downward cleanup
+                if (isDir) {
+                    const keys = Object.keys(this.config.partialFolders);
+                    for (const key of keys) {
+                        if (key.startsWith(relPath + '/')) {
+                            delete this.config.partialFolders[key];
+                        }
+                    }
+                    this.config.forcedIncludes = this.config.forcedIncludes.filter(p => !(p.startsWith(relPath + '/')));
+                }
+                
             } else {
                 // Uncheck downward
                 this.config.forcedIncludes = this.config.forcedIncludes.filter(p => !(relPath === p || p.startsWith(relPath + '/')));
-                if (isDir) {
-                    await this.uncheckDownward(item, parent, baseName);
-                } else {
-                    if (!this.config.partialFolders[parent]) {
-                        this.config.partialFolders[parent] = { excluded: [] };
-                    }
-                    this.config.partialFolders[parent].excluded.push(baseName);
-                    this.config.partialFolders[parent].excluded = [...new Set(this.config.partialFolders[parent].excluded)];
-                    await this.checkAndUncheckIfAllExcluded(parent);
-                    const data = this.config.partialFolders[parent];
-                    if (data && data.excluded.length === 0) {
-                        delete this.config.partialFolders[parent];
-                    }
-                    const refreshUri = vscode.Uri.file(path.posix.join(this.workspaceRoot, parent));
-                    const refreshItem = new vscode.TreeItem(path.posix.basename(parent) || 'root', vscode.TreeItemCollapsibleState.None) as SnapshotItem;
-                    refreshItem.relPath = parent;
-                    refreshItem.resourceUri = refreshUri;
-                    this.refresh(refreshItem);
+                
+                if (!this.config.partialFolders[parent]) {
+                    this.config.partialFolders[parent] = { excluded: [] };
                 }
+                this.config.partialFolders[parent].excluded.push(baseName);
+                this.config.partialFolders[parent].excluded = [...new Set(this.config.partialFolders[parent].excluded)];
+                
+                if (isDir) {
+                    const keys = Object.keys(this.config.partialFolders);
+                    for (const key of keys) {
+                        if (key === relPath || key.startsWith(relPath + '/')) {
+                            delete this.config.partialFolders[key];
+                        }
+                    }
+                }
+
+                await this.checkAndUncheckIfAllExcluded(parent);
+                const data = this.config.partialFolders[parent];
+                if (data && data.excluded.length === 0) {
+                    delete this.config.partialFolders[parent];
+                }
+                const refreshUri = vscode.Uri.file(path.posix.join(this.workspaceRoot, parent));
+                const refreshItem = new vscode.TreeItem(path.posix.basename(parent) || 'root', vscode.TreeItemCollapsibleState.None) as SnapshotItem;
+                refreshItem.relPath = parent;
+                refreshItem.resourceUri = refreshUri;
+                this.refresh(refreshItem);
             }
             await this.saveConfig();
         }
     }
 
-    private async uncheckDownward(item: SnapshotItem, parent: string, baseName: string): Promise<void> {
-        const relPath = item.relPath;
-        this.config.forcedIncludes = this.config.forcedIncludes.filter(p => !(relPath === p || p.startsWith(relPath + '/')));
-        if (!this.config.partialFolders[parent]) {
-            this.config.partialFolders[parent] = { excluded: [] };
-        }
-        this.config.partialFolders[parent].excluded.push(baseName);
-        this.config.partialFolders[parent].excluded = [...new Set(this.config.partialFolders[parent].excluded)];
-        const uri = vscode.Uri.file(path.posix.join(this.workspaceRoot, relPath));
-        let stat: vscode.FileStat | undefined;
-        try {
-            stat = await vscode.workspace.fs.stat(uri);
-        } catch (error) {
-            console.error(`Error stat for ${relPath}: `, error);
-            return;
-        }
-        const isDir = stat.type === vscode.FileType.Directory;
-        if (isDir) {
-            delete this.config.partialFolders[relPath];
-            const children = await this.getChildren(item);
-            for (const child of children) {
-                const childBase = path.posix.basename(child.relPath);
-                await this.uncheckDownward(child, relPath, childBase);
-            }
-        }
-        await this.checkAndUncheckIfAllExcluded(parent);
-        const refreshParent = parent;
-        const refreshUri = vscode.Uri.file(path.posix.join(this.workspaceRoot, refreshParent));
-        const refreshItem = new vscode.TreeItem(path.posix.basename(refreshParent) || 'root', vscode.TreeItemCollapsibleState.None) as SnapshotItem;
-        refreshItem.relPath = refreshParent;
-        refreshItem.resourceUri = refreshUri;
-        this.refresh(refreshItem);
-        const data = this.config.partialFolders[parent];
-        if (data && data.excluded.length === 0) {
-            delete this.config.partialFolders[parent];
-        }
-    }
+
 
     private async checkAndUncheckIfAllExcluded(parent: string): Promise<void> {
         let currentParent = parent;

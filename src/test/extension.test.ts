@@ -48,7 +48,6 @@ suite('RepoSnapshot Extension Test Suite', () => {
     test('SnapshotTreeProvider: updateSelection for file', async () => {
         const provider = new SnapshotTreeProvider(testWorkspaceRoot);
         await provider.initialize();
-        // Mock item (упрощённо, с типом)
         const mockItem: Partial<SnapshotItem> = {
             label: 'file1.ts',
             relPath: 'file1.ts',
@@ -58,6 +57,38 @@ suite('RepoSnapshot Extension Test Suite', () => {
         assert.ok(provider.config.partialFolders[''].excluded.includes('file1.ts'));
         await provider.updateSelection(mockItem as SnapshotItem, true); // Check back
         assert.strictEqual(provider.config.partialFolders[''].excluded.includes('file1.ts'), false);
+    });
+
+    test('SnapshotTreeProvider: check and uncheck directory', async () => {
+        const provider = new SnapshotTreeProvider(testWorkspaceRoot);
+        await provider.initialize();
+
+        // Mock directory item
+        const mockDir: Partial<SnapshotItem> = {
+            label: 'folder',
+            relPath: 'folder',
+            resourceUri: vscode.Uri.file(path.join(testWorkspaceRoot, 'folder'))
+        };
+
+        // Uncheck the directory
+        await provider.updateSelection(mockDir as SnapshotItem, false);
+        assert.ok(provider.config.partialFolders[''].excluded.includes('folder'), "Folder should be excluded in root");
+        assert.strictEqual(provider.config.partialFolders['folder'], undefined, "Folder exclusions should be deleted");
+
+        // Mock file inside to verify it's unchecked
+        const mockFile: Partial<SnapshotItem> = {
+            label: 'file2.js',
+            relPath: 'folder/file2.js',
+            resourceUri: vscode.Uri.file(path.join(testWorkspaceRoot, 'folder', 'file2.js'))
+        };
+        // wait for update processing just in case
+
+        // Now check the directory back
+        await provider.updateSelection(mockDir as SnapshotItem, true);
+        assert.strictEqual(provider.config.partialFolders[''].excluded.includes('folder'), false, "Folder should not be excluded in root");
+        const folderData = (provider.config.partialFolders as any)['folder'];
+        assert.ok(folderData, "Folder data should exist");
+        assert.strictEqual(folderData.excluded.length, 0, "Folder should have no exclusions");
     });
 
     test('generateSnapshot: Basic output structure', () => {
