@@ -1,0 +1,114 @@
+{
+  "name": "reposnapshot",
+  "displayName": "RepoSnapshot",
+  "description": "Generates repository snapshot for LLM",
+  "version": "0.0.6",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:repoSnapshot.extensions",
+    "onView:repoSnapshot.files",
+    "onView:repoSnapshot.settings"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "repoSnapshot-container",
+          "title": "Repo Snapshot",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "repoSnapshot-container": [
+        {
+          "id": "repoSnapshot.extensions",
+          "name": "Extensions",
+          "contextualTitle": "File Extensions"
+        },
+        {
+          "id": "repoSnapshot.files",
+          "name": "Files",
+          "contextualTitle": "File Tree"
+        },
+        {
+          "id": "repoSnapshot.settings",
+          "name": "Settings",
+          "contextualTitle": "Snapshot Settings",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "repoSnapshot.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "repoSnapshot.openSettings",
+        "title": "Open Settings",
+        "icon": "$(ellipsis)"
+      },
+      {
+        "command": "repoSnapshot.generate",
+        "title": "Generate Repo Snapshot",
+        "icon": "$(rocket)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "repoSnapshot.refresh",
+          "when": "view == repoSnapshot.extensions || view == repoSnapshot.files",
+          "group": "navigation"
+        },
+        {
+          "command": "repoSnapshot.generate",
+          "when": "view == repoSnapshot.files",
+          "group": "navigation"
+        },
+        {
+          "command": "repoSnapshot.openSettings",
+          "when": "view == repoSnapshot.extensions || view == repoSnapshot.files",
+          "group": "navigation@100"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.93.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.32.0",
+    "fs-extra": "^11.3.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "ignore": "^5.3.2"
+  },
+  "publisher": "sc20ka",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode-wordcount.git"
+  }
+}

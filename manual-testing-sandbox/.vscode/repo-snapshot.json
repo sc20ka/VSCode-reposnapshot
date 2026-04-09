@@ -1,0 +1,41 @@
+{
+  "partialFolders": {
+    "": {
+      "excluded": [
+        ".vscode"
+      ]
+    }
+  },
+  "autoAddNewFiles": true,
+  "forcedIncludes": [],
+  "selectedExtensions": [
+    ".js",
+    ".map",
+    ".tsx",
+    ".java",
+    ".json",
+    ".yaml",
+    "",
+    ".ipynb",
+    ".py",
+    ".md",
+    ".ts",
+    ".cs",
+    ".sql",
+    ".txt",
+    ".css",
+    ".csv",
+    ".html",
+    ".kt",
+    ".php",
+    ".rb",
+    ".rs",
+    ".sh"
+  ],
+  "excludedForRoot": [
+    ".vscode"
+  ],
+  "maxSnapshotLength": 200000,
+  "includeMetadata": true,
+  "ignoreGitignore": false
+}
