@@ -22,8 +22,8 @@ export class ExtensionProvider implements vscode.TreeDataProvider<ExtensionItem>
         this.selected = new Set(mainProvider.config.selectedExtensions || []);
     }
 
-    refresh(): void {
-        this.scanExtensions();
+    async refresh(): Promise<void> {
+        await this.scanExtensions();
         this._onDidChangeTreeData.fire(undefined);
     }
 
@@ -31,10 +31,10 @@ export class ExtensionProvider implements vscode.TreeDataProvider<ExtensionItem>
         return element;
     }
 
-    getChildren(element?: ExtensionItem): vscode.ProviderResult<ExtensionItem[]> {
+    async getChildren(element?: ExtensionItem): Promise<ExtensionItem[]> {
         if (!element) {
             if (this.extensions.size === 0) {
-                this.scanExtensions();
+                await this.scanExtensions();
             }
             const priorityOrder = ['.c', '.cpp', '.h', '.hpp', '.cs', '.py', '.js', '.ts', '.java', '.go', '.rs', '.php', '.rb', '.swift', '.kt', '.html', '.css', '.xml', '.json', '.yaml', '.yml', '.md', '.sh', '.bat', '.ps1', '.vhd', '.vhdl', '.v', '.sv'];
             const exts = Array.from(this.extensions.keys()).sort((a, b) => {

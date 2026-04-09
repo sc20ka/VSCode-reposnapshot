@@ -49,10 +49,10 @@ export async function activate(context: vscode.ExtensionContext) {
     const settingsProvider = new SettingsProvider(context.extensionUri, provider);
     vscode.window.registerWebviewViewProvider('repoSnapshot.settings', settingsProvider);
 
-    context.subscriptions.push(vscode.commands.registerCommand('repoSnapshot.refresh', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('repoSnapshot.refresh', async () => {
         console.log('RepoSnapshot: Refresh');
         provider.refresh(undefined);
-        extProvider.refresh();
+        await extProvider.refresh();
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand('repoSnapshot.openSettings', () => {
