@@ -1,9 +1,50 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { StringDecoder } from 'string_decoder';
 
 interface Config {
     includeMetadata: boolean;
     maxSnapshotLength: number;
+}
+
+function readFileSafely(filePath: string): string {
+    let content = '';
+    const CHUNK_SIZE = 65536; // 64 KB
+    const buffer = Buffer.alloc(CHUNK_SIZE);
+    let fd: number | null = null;
+    const decoder = new StringDecoder('utf8');
+
+    try {
+        fd = fs.openSync(filePath, 'r');
+        let bytesRead = 0;
+        let position = 0;
+        while ((bytesRead = fs.readSync(fd, buffer, 0, CHUNK_SIZE, position)) > 0) {
+            position += bytesRead;
+            const chunk = decoder.write(buffer.subarray(0, bytesRead));
+            const invalidCharIdx = chunk.search(/[\uFFFD\x00]/);
+            if (invalidCharIdx !== -1) {
+                content += chunk.substring(0, invalidCharIdx);
+                content += '\n... [Stopped reading due to binary/invalid characters]';
+                return content;
+            }
+            content += chunk;
+        }
+        const lastChunk = decoder.end();
+        const invalidCharIdx = lastChunk.search(/[\uFFFD\x00]/);
+        if (invalidCharIdx !== -1) {
+            content += lastChunk.substring(0, invalidCharIdx);
+            content += '\n... [Stopped reading due to binary/invalid characters]';
+            return content;
+        }
+        content += lastChunk;
+    } finally {
+        if (fd !== null) {
+            try {
+                fs.closeSync(fd);
+            } catch (e) {}
+        }
+    }
+    return content;
 }
 
 export function generateSnapshot(selectedFiles: string[], rootDirectory: string, config: Config): string {
@@ -24,7 +65,7 @@ export function generateSnapshot(selectedFiles: string[], rootDirectory: string,
         const relPath = path.relative(rootDirectory, filePath).replace(/\\/g, '/');
         output += `\`\`\`${relPath}\n`;
         try {
-            output += fs.readFileSync(filePath, 'utf8') + '\n';
+            output += readFileSafely(filePath) + '\n';
         } catch (err: unknown) {  // Фикс: unknown + type guard
             const errorMessage = err instanceof Error ? err.message : String(err);
             output += `Error reading file: ${errorMessage}\n`;
