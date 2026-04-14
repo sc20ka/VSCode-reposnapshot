@@ -67,37 +67,3 @@ Empty Extensions View: The Extensions view may appear empty if no files are sele
 Directory Uncheck: Unchecking a directory may not fully exclude its contents in the snapshot due to parent folder selection logic. Fixed in the latest update (see Release Notes).
 Localization: Full support for Russian and Chinese is under development.
 File Output: Saving snapshots to a file is not yet implemented.
-
-Report issues at the GitHub repository.
-Release Notes
-1.0.0
-Initial release of RepoSnapshot, featuring:
-
-Files and Extensions views with checkbox-based selection.
-.gitignore integration with forced inclusion support.
-Snapshot generation with metadata, ASCII tree, and file contents.
-Configuration persistence in .vscode/repo-snapshot.json.
-
-1.0.1
-
-Fixed activation errors (not a function) by using createTreeView and onDidChangeCheckboxState.
-Improved checkbox handling to prevent unintended re-checking.
-Added debug logging for the Extensions view to diagnose empty view issues.
-
-1.1.0
-
-Removed fullFolders configuration (replaced with partialFolders for consistency).
-Fixed directory uncheck to properly exclude contents via parent’s excluded list.
-Added excludedForRoot to preserve root exclusions when toggling autoAddNewFiles.
-Moved auto-selection of extensions to scanExtensions to avoid race conditions.
-Planned features: localization (en/ru/zh), file output
-
-
-Following Extension Guidelines
-RepoSnapshot adheres to the VS Code Extension Guidelines, ensuring compatibility, performance, and a user-friendly experience.
-Working with Markdown
-Author this README in Visual Studio Code with these shortcuts:
-
-Split editor: Cmd+\ (macOS) or Ctrl+\ (Windows/Linux).
-Toggle preview: Shift+Cmd+V (macOS) or Shift+Ctrl+V (Windows/Linux).
-Markdown snippets: Ctrl+Space (all platforms).
