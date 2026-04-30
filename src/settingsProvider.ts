@@ -123,9 +123,6 @@ export class SettingsProvider implements vscode.WebviewViewProvider {
                 ignoreGitignore.checked = message.ignoreGitignore;
                 }
             });
-        const vscode = acquireVsCodeApi();
-        const autoAdd = document.getElementById('autoAdd');
-        // ... (весь остальной JS из шага 1, включая логи)
         </script>
     </body>
     </html>`;
